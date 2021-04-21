@@ -11,5 +11,5 @@ Name|Type|Description|
 |region|string|Defaults to `us-east-1`|
 |s3_bucket_name|string|Set this to use a specific S3 bucket, else leave as default and a new bucket will be created.|
 |environment|string|Used to determine the environment type, e.g. Development, Staging, Production etc.|
-|cloudfront_aliases|string|Specify a list of CNAMEs to be associated with the site, else leave empty to use *.cloudfront.net.|
+|cloudfront_aliases|list|Specify a list of CNAMEs to be associated with the site, else leave empty to use *.cloudfront.net.|
 |cloudfront_certificate_arn|string|If cloudfront_aliases are defined, a ACM Certificate will also be required.|

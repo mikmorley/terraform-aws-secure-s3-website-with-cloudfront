@@ -45,6 +45,15 @@ data "aws_iam_policy_document" "s3_bucket_policy" {
   }
 }
 
+resource "aws_s3_bucket_public_access_block" "website" {
+  bucket = aws_s3_bucket.website[0].id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
 # Add initial static web files to s3 for validation of infrastructure
 resource "aws_s3_bucket_object" "index" {
   depends_on = [
