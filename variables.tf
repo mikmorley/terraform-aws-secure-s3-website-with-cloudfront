@@ -20,3 +20,14 @@ variable "environment" {
   default     = "Production"
   description = "Used to determine the environment type, e.g. Development, Staging, Production etc."
 }
+
+variable "cloudfront_aliases" {
+  type        = list(string)
+  default     = []
+  description = "Specify a list of CNAMEs to be associated with the site, else leave empty to use *.cloudfront.net."
+}
+
+variable "cloudfront_certificate_arn" {
+  type    = string
+  default = null
+}

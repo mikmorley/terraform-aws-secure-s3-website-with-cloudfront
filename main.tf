@@ -62,7 +62,7 @@ resource "aws_s3_bucket_object" "error" {
     aws_s3_bucket.website[0]
   ]
   bucket       = aws_s3_bucket.website[0].bucket
-  key          = "index.html"
+  key          = "error.html"
   source       = "${path.module}/files/error.html"
   content_type = "text/html"
   etag         = filemd5("${path.module}/files/error.html")
@@ -87,8 +87,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   is_ipv6_enabled     = true
   comment             = var.name
   default_root_object = "index.html"
-
-  #   aliases = local.domain_name
+  aliases             = var.cloudfront_aliases
 
   default_cache_behavior {
     allowed_methods = [
@@ -111,7 +110,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
       }
     }
 
-    viewer_protocol_policy = "allow-all"
+    viewer_protocol_policy = "redirect-to-https"
     min_ttl                = 0
     default_ttl            = 86400
     max_ttl                = 31536000
@@ -127,6 +126,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
   viewer_certificate {
     cloudfront_default_certificate = true
+    acm_certificate_arn            = var.cloudfront_certificate_arn
   }
 
   custom_error_response {

@@ -3,9 +3,9 @@ output "cloudfront_url" {
 }
 
 output "s3_bucket_name" {
-  value = aws_s3_bucket.website.id
+  value = aws_s3_bucket.website[0].id
 }
 
 output "s3_bucket_domain_name" {
-  value = aws_s3_bucket.website.bucket_domain_name
+  value = aws_s3_bucket.website[0].bucket_domain_name
 }
