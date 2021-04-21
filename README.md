@@ -1,6 +1,8 @@
 # aws-terraform-s3-serverless-website
 A complete Terraform stack to deploy a serverless static website, hosted from AWS in a secured s3 bucket, only accessible via CloudFront (no direct bucket access).
 
+![s3-website-cloudfront](files/s3-website-cloudfront.png)
+
 This stack should be used as a quickstart, and may require some additional tweaking to suit your needs (outside of hosting a simple single secure static website).
 
 ### Variables
