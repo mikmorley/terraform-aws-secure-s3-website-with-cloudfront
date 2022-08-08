@@ -128,7 +128,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     max_ttl                = 31536000
   }
 
-  price_class = "PriceClass_100"
+  price_class = "PriceClass_All"
 
   restrictions {
     geo_restriction {
@@ -137,8 +137,10 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    cloudfront_default_certificate = false
     acm_certificate_arn            = var.cloudfront_certificate_arn
+    ssl_support_method             = "sni-only"
+    minimum_protocol_version       = "TLSv1.2_2021"
   }
 
   custom_error_response {
