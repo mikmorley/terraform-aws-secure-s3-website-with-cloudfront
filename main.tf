@@ -7,6 +7,20 @@ locals {
   # If var.s3_bucket_name is not set, a new bucket will be created.
   create_bucket = var.s3_bucket_name == "" ? 1 : 0
   bucket_name   = local.create_bucket == 1 ? "${var.name}-${local.account_id}" : var.s3_bucket_name
+
+  mime_types = {
+    html  = "text/html",
+    css   = "text/css",
+    eot   = "application/vnd.ms-fontobject",
+    svg   = "image/svg+xml",
+    ttf   = "application/octet-stream",
+    woff  = "font/woff",
+    woff2 = "font/woff2",
+    otf   = "font/otf",
+    jpg   = "image/jpeg",
+    png   = "image/png",
+    js    = "text/javascript"
+  }
 }
 
 # Create S3 Bucket
@@ -129,6 +143,13 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
   custom_error_response {
     error_code            = 403
+    response_code         = 200
+    error_caching_min_ttl = 0
+    response_page_path    = "/error.html"
+  }
+
+  custom_error_response {
+    error_code            = 404
     response_code         = 200
     error_caching_min_ttl = 0
     response_page_path    = "/error.html"
