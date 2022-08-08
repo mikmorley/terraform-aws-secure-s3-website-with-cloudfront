@@ -55,26 +55,15 @@ resource "aws_s3_bucket_public_access_block" "website" {
 }
 
 # Add initial static web files to s3 for validation of infrastructure
-resource "aws_s3_bucket_object" "index" {
-  depends_on = [
-    aws_s3_bucket.website[0]
-  ]
-  bucket       = aws_s3_bucket.website[0].bucket
-  key          = "index.html"
-  source       = "${path.module}/files/index.html"
-  content_type = "text/html"
-  etag         = filemd5("${path.module}/files/index.html")
-}
+resource "aws_s3_bucket_object" "root" {
+  for_each = fileset("${path.module}/files/", "**")
 
-resource "aws_s3_bucket_object" "error" {
-  depends_on = [
-    aws_s3_bucket.website[0]
-  ]
-  bucket       = aws_s3_bucket.website[0].bucket
-  key          = "error.html"
-  source       = "${path.module}/files/error.html"
-  content_type = "text/html"
-  etag         = filemd5("${path.module}/files/error.html")
+  bucket = local.mikmorley_com_s3_bucket
+  key    = each.value
+  source = "${path.module}/files/${each.value}"
+  etag   = filemd5("${path.module}/files/${each.value}")
+
+  content_type = lookup(local.mime_types, split(".", each.value)[length(split(".", each.value)) - 1], "application/octet-stream")
 }
 
 # CloudFront Distribution
