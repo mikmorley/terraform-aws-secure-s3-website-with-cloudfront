@@ -7,6 +7,20 @@ locals {
   # If var.s3_bucket_name is not set, a new bucket will be created.
   create_bucket = var.s3_bucket_name == "" ? 1 : 0
   bucket_name   = local.create_bucket == 1 ? "${var.name}-${local.account_id}" : var.s3_bucket_name
+
+  mime_types = {
+    html  = "text/html",
+    css   = "text/css",
+    eot   = "application/vnd.ms-fontobject",
+    svg   = "image/svg+xml",
+    ttf   = "application/octet-stream",
+    woff  = "font/woff",
+    woff2 = "font/woff2",
+    otf   = "font/otf",
+    jpg   = "image/jpeg",
+    png   = "image/png",
+    js    = "text/javascript"
+  }
 }
 
 # Create S3 Bucket
@@ -55,26 +69,15 @@ resource "aws_s3_bucket_public_access_block" "website" {
 }
 
 # Add initial static web files to s3 for validation of infrastructure
-resource "aws_s3_bucket_object" "index" {
-  depends_on = [
-    aws_s3_bucket.website[0]
-  ]
-  bucket       = aws_s3_bucket.website[0].bucket
-  key          = "index.html"
-  source       = "${path.module}/files/index.html"
-  content_type = "text/html"
-  etag         = filemd5("${path.module}/files/index.html")
-}
+resource "aws_s3_bucket_object" "root" {
+  for_each = fileset("${path.module}/files/", "**")
 
-resource "aws_s3_bucket_object" "error" {
-  depends_on = [
-    aws_s3_bucket.website[0]
-  ]
-  bucket       = aws_s3_bucket.website[0].bucket
-  key          = "error.html"
-  source       = "${path.module}/files/error.html"
-  content_type = "text/html"
-  etag         = filemd5("${path.module}/files/error.html")
+  bucket = local.mikmorley_com_s3_bucket
+  key    = each.value
+  source = "${path.module}/files/${each.value}"
+  etag   = filemd5("${path.module}/files/${each.value}")
+
+  content_type = lookup(local.mime_types, split(".", each.value)[length(split(".", each.value)) - 1], "application/octet-stream")
 }
 
 # CloudFront Distribution
@@ -125,7 +128,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     max_ttl                = 31536000
   }
 
-  price_class = "PriceClass_100"
+  price_class = "PriceClass_All"
 
   restrictions {
     geo_restriction {
@@ -134,12 +137,21 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    cloudfront_default_certificate = false
     acm_certificate_arn            = var.cloudfront_certificate_arn
+    ssl_support_method             = "sni-only"
+    minimum_protocol_version       = "TLSv1.2_2021"
   }
 
   custom_error_response {
     error_code            = 403
+    response_code         = 200
+    error_caching_min_ttl = 0
+    response_page_path    = "/error.html"
+  }
+
+  custom_error_response {
+    error_code            = 404
     response_code         = 200
     error_caching_min_ttl = 0
     response_page_path    = "/error.html"
