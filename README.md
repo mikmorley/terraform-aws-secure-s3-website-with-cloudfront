@@ -1,6 +1,6 @@
-# Terraform AWS Secure S3 Website with CloudFront
+# Terraform AWS Static Website
 
-[![Terraform Validation](https://github.com/mikmorley/terraform-aws-secure-s3-website-with-cloudfront/actions/workflows/terraform-validation.yml/badge.svg)](https://github.com/mikmorley/terraform-aws-secure-s3-website-with-cloudfront/actions/workflows/terraform-validation.yml)
+[![Terraform Validation](https://github.com/mikmorley/terraform-aws-static-website/actions/workflows/terraform-validation.yml/badge.svg)](https://github.com/mikmorley/terraform-aws-static-website/actions/workflows/terraform-validation.yml)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Terraform](https://img.shields.io/badge/Terraform-%E2%89%A5%201.0-blue.svg)](https://terraform.io/)
 [![AWS Provider](https://img.shields.io/badge/AWS%20Provider-%E2%89%A5%205.0-orange.svg)](https://registry.terraform.io/providers/hashicorp/aws/latest)
@@ -36,7 +36,7 @@ A production-ready Terraform module that creates a secure, scalable static websi
 
 ```hcl
 module "secure_website" {
-  source = "github.com/mikmorley/terraform-aws-secure-s3-website-with-cloudfront"
+  source = "mikmorley/static-website/aws"
 
   name        = "my-website"
   environment = "Production"
@@ -61,7 +61,7 @@ This module creates the following AWS resources:
 
 ```hcl
 module "website" {
-  source = "github.com/mikmorley/terraform-aws-secure-s3-website-with-cloudfront"
+  source = "mikmorley/static-website/aws"
 
   name        = "company-website"
   environment = "Production"
@@ -77,7 +77,7 @@ output "website_url" {
 
 ```hcl
 module "website" {
-  source = "github.com/mikmorley/terraform-aws-secure-s3-website-with-cloudfront"
+  source = "mikmorley/static-website/aws"
 
   name        = "company-website"
   environment = "Production"
@@ -92,7 +92,7 @@ module "website" {
 
 ```hcl
 module "website" {
-  source = "github.com/mikmorley/terraform-aws-secure-s3-website-with-cloudfront"
+  source = "mikmorley/static-website/aws"
 
   name           = "company-website"
   s3_bucket_name = "my-existing-bucket"
@@ -211,6 +211,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 For questions, issues, or contributions:
-- 🐛 [Report Issues](https://github.com/mikmorley/terraform-aws-secure-s3-website-with-cloudfront/issues)
-- 📖 [View Documentation](https://github.com/mikmorley/terraform-aws-secure-s3-website-with-cloudfront)
-- 💡 [Request Features](https://github.com/mikmorley/terraform-aws-secure-s3-website-with-cloudfront/issues)
+- 🐛 [Report Issues](https://github.com/mikmorley/terraform-aws-static-website/issues)
+- 📖 [View Documentation](https://github.com/mikmorley/terraform-aws-static-website)
+- 💡 [Request Features](https://github.com/mikmorley/terraform-aws-static-website/issues)

@@ -1,0 +1,18 @@
+# Gitleaks configuration to allow fake test credentials
+[[rules]]
+  id = "aws-access-key"
+  description = "AWS Access Key ID"
+  regex = '''AKIA[0-9A-Z]{16}'''
+  
+  [[rules.allowlist]]
+    regex = '''fake'''
+    description = "Allow fake test credentials"
+
+[[rules]]
+  id = "aws-secret-key"
+  description = "AWS Secret Access Key"
+  regex = '''[0-9a-zA-Z/+]{40}'''
+  
+  [[rules.allowlist]]
+    regex = '''fake'''
+    description = "Allow fake test credentials"

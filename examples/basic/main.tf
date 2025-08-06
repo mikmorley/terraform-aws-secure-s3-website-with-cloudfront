@@ -1,7 +1,7 @@
-module "secure_s3_website" {
+module "static_website" {
   source = "../../"
 
-  name        = "my-secure-website"
+  name        = "my-static-website"
   environment = "Production"
   region      = "us-east-1"
 

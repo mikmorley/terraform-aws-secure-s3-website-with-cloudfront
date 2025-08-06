@@ -1,6 +1,6 @@
 # Basic Example
 
-This example demonstrates the basic usage of the `terraform-aws-secure-s3-website-with-cloudfront` module.
+This example demonstrates the basic usage of the `terraform-aws-static-website` module.
 
 ## Usage
 
