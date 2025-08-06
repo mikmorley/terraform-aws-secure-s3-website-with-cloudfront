@@ -1,4 +1,10 @@
 # aws-terraform-secure-s3-website-with-cloudfront
+
+[![Terraform Validation](https://github.com/mikmorley/terraform-aws-secure-s3-website-with-cloudfront/actions/workflows/terraform-validation.yml/badge.svg)](https://github.com/mikmorley/terraform-aws-secure-s3-website-with-cloudfront/actions/workflows/terraform-validation.yml)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Terraform](https://img.shields.io/badge/Terraform-%E2%89%A5%201.0-blue.svg)](https://terraform.io/)
+[![AWS Provider](https://img.shields.io/badge/AWS%20Provider-%E2%89%A5%205.0-orange.svg)](https://registry.terraform.io/providers/hashicorp/aws/latest)
+
 A complete Terraform stack to deploy a serverless static website, hosted from AWS in a secured s3 bucket, only accessible via CloudFront (no direct bucket access).
 
 ![s3-website-cloudfront](files/s3-website-cloudfront.png)
