@@ -9,16 +9,16 @@ locals {
   bucket_name   = local.create_bucket == 1 ? "${var.name}-${local.account_id}" : var.s3_bucket_name
 
   mime_types = {
-    html  = "text/html",
-    css   = "text/css",
-    eot   = "application/vnd.ms-fontobject",
-    svg   = "image/svg+xml",
-    ttf   = "application/octet-stream",
-    woff  = "font/woff",
-    woff2 = "font/woff2",
-    otf   = "font/otf",
-    jpg   = "image/jpeg",
-    png   = "image/png",
+    html  = "text/html"
+    css   = "text/css"
+    eot   = "application/vnd.ms-fontobject"
+    svg   = "image/svg+xml"
+    ttf   = "application/octet-stream"
+    woff  = "font/woff"
+    woff2 = "font/woff2"
+    otf   = "font/otf"
+    jpg   = "image/jpeg"
+    png   = "image/png"
     js    = "text/javascript"
   }
 }
@@ -27,22 +27,51 @@ locals {
 resource "aws_s3_bucket" "website" {
   count  = local.create_bucket
   bucket = local.bucket_name
-  acl    = "private"
-  policy = data.aws_iam_policy_document.s3_bucket_policy.json
-
-  versioning {
-    enabled = true
-  }
 
   tags = {
     Environment = var.environment
   }
 }
 
-# S3 Bucket Policy allowing access from CloudFront
+# S3 Bucket Versioning
+resource "aws_s3_bucket_versioning" "website" {
+  count  = local.create_bucket
+  bucket = aws_s3_bucket.website[0].id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# S3 Bucket ACL
+resource "aws_s3_bucket_acl" "website" {
+  count      = local.create_bucket
+  bucket     = aws_s3_bucket.website[0].id
+  acl        = "private"
+  depends_on = [aws_s3_bucket_ownership_controls.website]
+}
+
+# S3 Bucket Ownership Controls
+resource "aws_s3_bucket_ownership_controls" "website" {
+  count  = local.create_bucket
+  bucket = aws_s3_bucket.website[0].id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+# S3 Bucket Policy
+resource "aws_s3_bucket_policy" "website" {
+  count  = local.create_bucket
+  bucket = aws_s3_bucket.website[0].id
+  policy = data.aws_iam_policy_document.s3_bucket_policy.json
+}
+
+# S3 Bucket Policy allowing access from CloudFront and AWS account root
 data "aws_iam_policy_document" "s3_bucket_policy" {
+  # Allow CloudFront OAI to read objects
   statement {
-    sid = "AllowAccessViaCloudFront"
+    sid = "AllowCloudFrontAccess"
     actions = [
       "s3:GetObject",
     ]
@@ -51,15 +80,64 @@ data "aws_iam_policy_document" "s3_bucket_policy" {
     ]
     principals {
       type = "AWS"
-
       identifiers = [
         aws_cloudfront_origin_access_identity.origin_access_identity.iam_arn,
       ]
     }
   }
+
+  # Allow AWS account root full access for administration
+  statement {
+    sid = "AllowRootAccountAccess"
+    actions = [
+      "s3:*",
+    ]
+    resources = [
+      "arn:aws:s3:::${local.bucket_name}",
+      "arn:aws:s3:::${local.bucket_name}/*",
+    ]
+    principals {
+      type = "AWS"
+      identifiers = [
+        "arn:aws:iam::${local.account_id}:root",
+      ]
+    }
+  }
+
+  # Deny all public access (explicit deny for security)
+  statement {
+    sid    = "DenyPublicAccess"
+    effect = "Deny"
+    actions = [
+      "s3:*",
+    ]
+    resources = [
+      "arn:aws:s3:::${local.bucket_name}",
+      "arn:aws:s3:::${local.bucket_name}/*",
+    ]
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    condition {
+      test     = "StringNotEquals"
+      variable = "aws:PrincipalServiceName"
+      values   = ["cloudfront.amazonaws.com"]
+    }
+    condition {
+      test     = "StringNotLike"
+      variable = "aws:PrincipalArn"
+      values = [
+        "arn:aws:iam::${local.account_id}:*",
+        aws_cloudfront_origin_access_identity.origin_access_identity.iam_arn
+      ]
+    }
+  }
 }
 
+# S3 Bucket Public Access Block
 resource "aws_s3_bucket_public_access_block" "website" {
+  count  = local.create_bucket
   bucket = aws_s3_bucket.website[0].id
 
   block_public_acls       = true
@@ -69,10 +147,10 @@ resource "aws_s3_bucket_public_access_block" "website" {
 }
 
 # Add initial static web files to s3 for validation of infrastructure
-resource "aws_s3_bucket_object" "root" {
+resource "aws_s3_object" "root" {
   for_each = fileset("${path.module}/files/", "**")
 
-  bucket = local.mikmorley_com_s3_bucket
+  bucket = local.bucket_name
   key    = each.value
   source = "${path.module}/files/${each.value}"
   etag   = filemd5("${path.module}/files/${each.value}")
