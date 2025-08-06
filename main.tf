@@ -27,16 +27,44 @@ locals {
 resource "aws_s3_bucket" "website" {
   count  = local.create_bucket
   bucket = local.bucket_name
-  acl    = "private"
-  policy = data.aws_iam_policy_document.s3_bucket_policy.json
-
-  versioning {
-    enabled = true
-  }
 
   tags = {
     Environment = var.environment
   }
+}
+
+# S3 Bucket Versioning
+resource "aws_s3_bucket_versioning" "website" {
+  count  = local.create_bucket
+  bucket = aws_s3_bucket.website[0].id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# S3 Bucket ACL
+resource "aws_s3_bucket_acl" "website" {
+  count  = local.create_bucket
+  bucket = aws_s3_bucket.website[0].id
+  acl    = "private"
+  depends_on = [aws_s3_bucket_ownership_controls.website]
+}
+
+# S3 Bucket Ownership Controls
+resource "aws_s3_bucket_ownership_controls" "website" {
+  count  = local.create_bucket
+  bucket = aws_s3_bucket.website[0].id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+# S3 Bucket Policy
+resource "aws_s3_bucket_policy" "website" {
+  count  = local.create_bucket
+  bucket = aws_s3_bucket.website[0].id
+  policy = data.aws_iam_policy_document.s3_bucket_policy.json
 }
 
 # S3 Bucket Policy allowing access from CloudFront
@@ -59,7 +87,9 @@ data "aws_iam_policy_document" "s3_bucket_policy" {
   }
 }
 
+# S3 Bucket Public Access Block
 resource "aws_s3_bucket_public_access_block" "website" {
+  count  = local.create_bucket
   bucket = aws_s3_bucket.website[0].id
 
   block_public_acls       = true
@@ -69,10 +99,10 @@ resource "aws_s3_bucket_public_access_block" "website" {
 }
 
 # Add initial static web files to s3 for validation of infrastructure
-resource "aws_s3_bucket_object" "root" {
+resource "aws_s3_object" "root" {
   for_each = fileset("${path.module}/files/", "**")
 
-  bucket = local.mikmorley_com_s3_bucket
+  bucket = local.bucket_name
   key    = each.value
   source = "${path.module}/files/${each.value}"
   etag   = filemd5("${path.module}/files/${each.value}")

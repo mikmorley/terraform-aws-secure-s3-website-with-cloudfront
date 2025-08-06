@@ -1,33 +1,62 @@
 variable "name" {
   type        = string
-  description = "Specify the name of the stack/project"
+  description = "Name of the stack/project. Used for resource naming and tagging."
   default     = "static-website"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]+$", var.name))
+    error_message = "Name must contain only lowercase letters, numbers, and hyphens."
+  }
 }
 
 variable "region" {
-  type    = string
-  default = "us-east-1"
+  type        = string
+  description = "AWS region where resources will be created."
+  default     = "us-east-1"
 }
 
 variable "s3_bucket_name" {
   type        = string
+  description = "Name of an existing S3 bucket to use. If empty, a new bucket will be created with the format '{name}-{account_id}'."
   default     = ""
-  description = "Set this to use a specific S3 bucket, else leave as default and a new bucket will be created."
+
+  validation {
+    condition     = var.s3_bucket_name == "" || can(regex("^[a-z0-9.-]+$", var.s3_bucket_name))
+    error_message = "S3 bucket name must contain only lowercase letters, numbers, periods, and hyphens."
+  }
 }
 
 variable "environment" {
   type        = string
+  description = "Environment name for resource tagging (e.g., Development, Staging, Production)."
   default     = "Production"
-  description = "Used to determine the environment type, e.g. Development, Staging, Production etc."
+
+  validation {
+    condition     = contains(["Development", "Staging", "Production"], var.environment)
+    error_message = "Environment must be one of: Development, Staging, Production."
+  }
 }
 
 variable "cloudfront_aliases" {
   type        = list(string)
+  description = "List of CNAMEs (alternate domain names) for the CloudFront distribution. Leave empty to use the default *.cloudfront.net domain."
   default     = []
-  description = "Specify a list of CNAMEs to be associated with the site, else leave empty to use *.cloudfront.net."
+
+  validation {
+    condition = alltrue([
+      for alias in var.cloudfront_aliases : can(regex("^[a-z0-9.-]+\\.[a-z]{2,}$", alias))
+    ])
+    error_message = "CloudFront aliases must be valid domain names."
+  }
 }
 
 variable "cloudfront_certificate_arn" {
-  type    = string
-  default = null
+  type        = string
+  description = "ARN of the AWS Certificate Manager certificate to use for CloudFront HTTPS. Required when cloudfront_aliases is specified."
+  default     = null
+
+  validation {
+    condition = var.cloudfront_certificate_arn == null || can(regex("^arn:aws:acm:us-east-1:[0-9]{12}:certificate/[a-f0-9-]+$", var.cloudfront_certificate_arn))
+    error_message = "CloudFront certificate ARN must be a valid ACM certificate ARN in us-east-1 region."
+  }
 }

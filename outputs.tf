@@ -1,11 +1,29 @@
 output "cloudfront_url" {
-  value = aws_cloudfront_distribution.s3_distribution.domain_name
+  description = "The domain name of the CloudFront distribution"
+  value       = aws_cloudfront_distribution.s3_distribution.domain_name
+}
+
+output "cloudfront_distribution_id" {
+  description = "The identifier for the CloudFront distribution"
+  value       = aws_cloudfront_distribution.s3_distribution.id
 }
 
 output "s3_bucket_name" {
-  value = aws_s3_bucket.website[0].id
+  description = "The name of the S3 bucket used for hosting the static website"
+  value       = local.create_bucket == 1 ? aws_s3_bucket.website[0].id : var.s3_bucket_name
+}
+
+output "s3_bucket_arn" {
+  description = "The ARN of the S3 bucket"
+  value       = local.create_bucket == 1 ? aws_s3_bucket.website[0].arn : "arn:aws:s3:::${var.s3_bucket_name}"
 }
 
 output "s3_bucket_domain_name" {
-  value = aws_s3_bucket.website[0].bucket_domain_name
+  description = "The bucket domain name of the S3 bucket"
+  value       = local.create_bucket == 1 ? aws_s3_bucket.website[0].bucket_domain_name : "${var.s3_bucket_name}.s3.amazonaws.com"
+}
+
+output "origin_access_identity_id" {
+  description = "The CloudFront origin access identity ID"
+  value       = aws_cloudfront_origin_access_identity.origin_access_identity.id
 }
