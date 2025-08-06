@@ -67,10 +67,11 @@ resource "aws_s3_bucket_policy" "website" {
   policy = data.aws_iam_policy_document.s3_bucket_policy.json
 }
 
-# S3 Bucket Policy allowing access from CloudFront
+# S3 Bucket Policy allowing access from CloudFront and AWS account root
 data "aws_iam_policy_document" "s3_bucket_policy" {
+  # Allow CloudFront OAI to read objects
   statement {
-    sid = "AllowAccessViaCloudFront"
+    sid = "AllowCloudFrontAccess"
     actions = [
       "s3:GetObject",
     ]
@@ -79,9 +80,56 @@ data "aws_iam_policy_document" "s3_bucket_policy" {
     ]
     principals {
       type = "AWS"
-
       identifiers = [
         aws_cloudfront_origin_access_identity.origin_access_identity.iam_arn,
+      ]
+    }
+  }
+
+  # Allow AWS account root full access for administration
+  statement {
+    sid = "AllowRootAccountAccess"
+    actions = [
+      "s3:*",
+    ]
+    resources = [
+      "arn:aws:s3:::${local.bucket_name}",
+      "arn:aws:s3:::${local.bucket_name}/*",
+    ]
+    principals {
+      type = "AWS"
+      identifiers = [
+        "arn:aws:iam::${local.account_id}:root",
+      ]
+    }
+  }
+
+  # Deny all public access (explicit deny for security)
+  statement {
+    sid    = "DenyPublicAccess"
+    effect = "Deny"
+    actions = [
+      "s3:*",
+    ]
+    resources = [
+      "arn:aws:s3:::${local.bucket_name}",
+      "arn:aws:s3:::${local.bucket_name}/*",
+    ]
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    condition {
+      test     = "StringNotEquals"
+      variable = "aws:PrincipalServiceName"
+      values   = ["cloudfront.amazonaws.com"]
+    }
+    condition {
+      test     = "StringNotLike"
+      variable = "aws:PrincipalArn"
+      values = [
+        "arn:aws:iam::${local.account_id}:*",
+        aws_cloudfront_origin_access_identity.origin_access_identity.iam_arn
       ]
     }
   }
