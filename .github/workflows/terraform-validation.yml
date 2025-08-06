@@ -33,7 +33,13 @@ jobs:
 
     - name: Terraform Format Check
       id: fmt
-      run: terraform fmt -check -recursive
+      run: |
+        if terraform fmt -check -recursive; then
+          echo "fmt_result=success" >> $GITHUB_OUTPUT
+        else
+          echo "fmt_result=failure" >> $GITHUB_OUTPUT
+          echo "Formatting issues found. Run 'terraform fmt -recursive' to fix."
+        fi
       continue-on-error: true
 
     - name: Terraform Init
@@ -42,7 +48,13 @@ jobs:
 
     - name: Terraform Validate
       id: validate
-      run: terraform validate
+      run: |
+        if terraform validate; then
+          echo "validate_result=success" >> $GITHUB_OUTPUT
+        else
+          echo "validate_result=failure" >> $GITHUB_OUTPUT
+        fi
+      continue-on-error: true
 
     - name: Terraform Plan (Dry Run)
       id: plan
@@ -57,16 +69,16 @@ jobs:
       continue-on-error: true
 
     - name: Comment PR - Success
-      if: github.event_name == 'pull_request' && steps.fmt.outcome == 'success' && steps.validate.outcome == 'success'
+      if: github.event_name == 'pull_request' && steps.fmt.outputs.fmt_result == 'success' && steps.validate.outputs.validate_result == 'success'
       uses: actions/github-script@v7
       with:
         script: |
           const output = `
           ## Terraform Validation Results ✅
 
-          #### Format Check 🖌️\`${{ steps.fmt.outcome }}\`
+          #### Format Check 🖌️\`${{ steps.fmt.outputs.fmt_result }}\`
           #### Initialization ⚙️\`${{ steps.init.outcome }}\`  
-          #### Validation 🤖\`${{ steps.validate.outcome }}\`
+          #### Validation 🤖\`${{ steps.validate.outputs.validate_result }}\`
           #### Plan 📖\`${{ steps.plan.outcome }}\`
 
           <details><summary>Show Plan</summary>
@@ -88,16 +100,16 @@ jobs:
           })
 
     - name: Comment PR - Failure
-      if: github.event_name == 'pull_request' && (steps.fmt.outcome == 'failure' || steps.validate.outcome == 'failure')
+      if: github.event_name == 'pull_request' && (steps.fmt.outputs.fmt_result == 'failure' || steps.validate.outputs.validate_result == 'failure')
       uses: actions/github-script@v7
       with:
         script: |
           const output = `
           ## Terraform Validation Results ❌
 
-          #### Format Check 🖌️\`${{ steps.fmt.outcome }}\`
+          #### Format Check 🖌️\`${{ steps.fmt.outputs.fmt_result }}\`
           #### Initialization ⚙️\`${{ steps.init.outcome }}\`  
-          #### Validation 🤖\`${{ steps.validate.outcome }}\`
+          #### Validation 🤖\`${{ steps.validate.outputs.validate_result }}\`
           #### Plan 📖\`${{ steps.plan.outcome }}\`
 
           <details><summary>Show Validation Errors</summary>
@@ -119,7 +131,7 @@ jobs:
           })
 
     - name: Fail job if validation fails
-      if: steps.fmt.outcome == 'failure' || steps.validate.outcome == 'failure'
+      if: steps.fmt.outputs.fmt_result == 'failure' || steps.validate.outputs.validate_result == 'failure'
       run: exit 1
 
   example-validate:
