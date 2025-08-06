@@ -56,7 +56,7 @@ variable "cloudfront_certificate_arn" {
   default     = null
 
   validation {
-    condition = var.cloudfront_certificate_arn == null || can(regex("^arn:aws:acm:us-east-1:[0-9]{12}:certificate/[a-f0-9-]+$", var.cloudfront_certificate_arn))
+    condition     = var.cloudfront_certificate_arn == null || can(regex("^arn:aws:acm:us-east-1:[0-9]{12}:certificate/[a-f0-9-]+$", var.cloudfront_certificate_arn))
     error_message = "CloudFront certificate ARN must be a valid ACM certificate ARN in us-east-1 region."
   }
 }

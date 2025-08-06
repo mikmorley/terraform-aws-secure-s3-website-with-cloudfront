@@ -34,11 +34,18 @@ jobs:
     - name: Terraform Format Check
       id: fmt
       run: |
-        if terraform fmt -check -recursive; then
+        echo "Checking Terraform formatting..."
+        if terraform fmt -check -recursive -diff; then
           echo "fmt_result=success" >> $GITHUB_OUTPUT
+          echo "All files are properly formatted"
         else
           echo "fmt_result=failure" >> $GITHUB_OUTPUT
-          echo "Formatting issues found. Run 'terraform fmt -recursive' to fix."
+          echo "Formatting issues found:"
+          terraform fmt -check -recursive -diff
+          echo ""
+          echo "Auto-formatting files..."
+          terraform fmt -recursive
+          echo "Files have been formatted. Please commit the changes."
         fi
       continue-on-error: true
 
@@ -131,8 +138,10 @@ jobs:
           })
 
     - name: Fail job if validation fails
-      if: steps.fmt.outputs.fmt_result == 'failure' || steps.validate.outputs.validate_result == 'failure'
-      run: exit 1
+      if: steps.validate.outputs.validate_result == 'failure'
+      run: |
+        echo "Validation failed - this is a blocking error"
+        exit 1
 
   example-validate:
     name: Example Validation

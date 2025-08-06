@@ -9,16 +9,16 @@ locals {
   bucket_name   = local.create_bucket == 1 ? "${var.name}-${local.account_id}" : var.s3_bucket_name
 
   mime_types = {
-    html  = "text/html",
-    css   = "text/css",
-    eot   = "application/vnd.ms-fontobject",
-    svg   = "image/svg+xml",
-    ttf   = "application/octet-stream",
-    woff  = "font/woff",
-    woff2 = "font/woff2",
-    otf   = "font/otf",
-    jpg   = "image/jpeg",
-    png   = "image/png",
+    html  = "text/html"
+    css   = "text/css"
+    eot   = "application/vnd.ms-fontobject"
+    svg   = "image/svg+xml"
+    ttf   = "application/octet-stream"
+    woff  = "font/woff"
+    woff2 = "font/woff2"
+    otf   = "font/otf"
+    jpg   = "image/jpeg"
+    png   = "image/png"
     js    = "text/javascript"
   }
 }
@@ -44,9 +44,9 @@ resource "aws_s3_bucket_versioning" "website" {
 
 # S3 Bucket ACL
 resource "aws_s3_bucket_acl" "website" {
-  count  = local.create_bucket
-  bucket = aws_s3_bucket.website[0].id
-  acl    = "private"
+  count      = local.create_bucket
+  bucket     = aws_s3_bucket.website[0].id
+  acl        = "private"
   depends_on = [aws_s3_bucket_ownership_controls.website]
 }
 
